@@ -3,7 +3,7 @@ from tortoise.models import Model
 
 
 class User(Model):
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     name = fields.CharField(max_length=50)
     created_at = fields.DatetimeField(auto_now_add=True)
 

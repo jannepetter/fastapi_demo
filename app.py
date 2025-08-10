@@ -19,7 +19,7 @@ async def get_users(request: Request):
 @app.get("/create_user")
 async def create(request: Request):
     user = await User.create(name="alice")
-    return f"Created user {user.id}"
+    return f"Created user {user.name}"
 
 
 @app.get("/")

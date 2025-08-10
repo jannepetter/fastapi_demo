@@ -18,3 +18,6 @@ docker-clean:
 	@echo "Removing all Docker networks..."
 	docker network prune -f
 	@echo "Docker cleanup done."
+
+test:
+	ENV=TEST pytest tests

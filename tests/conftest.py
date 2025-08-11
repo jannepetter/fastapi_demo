@@ -1,20 +1,24 @@
 import pytest
 from tortoise.contrib.test import finalizer, initializer
-from fastapi.testclient import TestClient
+
+# from fastapi.testclient import TestClient
 from app import app
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_tests(request):
-    db_url = "sqlite://:memory:"
+    db_url = "postgres://postgres:postgres@localhost:5432/testdb"
     initializer(["models"], db_url=db_url)
     request.addfinalizer(finalizer)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def client():
-    with TestClient(app) as c:
-        yield c
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac
 
 
 @pytest.fixture(scope="session", autouse=True)

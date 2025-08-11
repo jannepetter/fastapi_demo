@@ -22,8 +22,8 @@ TORTOISE_ORM = {
 if ENV == "TEST":
     TORTOISE_ORM = {
         "connections": {
-            # "default": "postgres://postgres:postgres@localhost:5432/testdb"
-            "default": "sqlite://:memory:"
+            "default": "postgres://postgres:postgres@localhost:5432/testdb"
+            # "default": "sqlite://:memory:"
         },
         "apps": {
             "models": {
@@ -35,3 +35,27 @@ if ENV == "TEST":
             },
         },
     }
+    # TORTOISE_ORM = {
+    #     "connections": {
+    #         # Dict format for connection
+    #         "test": {
+    #             "engine": "tortoise.backends.asyncpg",
+    #             "credentials": {
+    #                 "host": "localhost",
+    #                 "port": "5432",
+    #                 "user": "postgres",
+    #                 "password": "postgres",
+    #                 "database": "testdb",
+    #             },
+    #         },
+    #         # Using a DB_URL string
+    #         "test": "postgres://postgres:postgres@localhost:5432/testdb",
+    #     },
+    #     "apps": {
+    #         "default": {
+    #             "models": ["models"],
+    #             # If no default_connection specified, defaults to 'default'
+    #             "default_connection": "default",
+    #         }
+    #     },
+    # }

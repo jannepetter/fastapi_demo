@@ -20,4 +20,8 @@ docker-clean:
 	@echo "Docker cleanup done."
 
 test:
-	ENV=TEST pytest tests
+	ENV=TEST pytest -n 2 tests
+	# ENV=TEST pytest tests --durations=10 -vvv
+
+psql_run:
+	psql -h localhost -U postgres

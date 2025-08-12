@@ -20,10 +20,10 @@ TORTOISE_ORM = {
 }
 
 if ENV == "TEST":
+    worker_id = os.getenv("PYTEST_XDIST_WORKER", "gw0")
     TORTOISE_ORM = {
         "connections": {
-            "default": "postgres://postgres:postgres@localhost:5432/testdb"
-            # "default": "sqlite://:memory:"
+            "default": f"postgres://postgres:postgres@localhost:5432/testdb_{worker_id}"
         },
         "apps": {
             "models": {
@@ -35,27 +35,3 @@ if ENV == "TEST":
             },
         },
     }
-    # TORTOISE_ORM = {
-    #     "connections": {
-    #         # Dict format for connection
-    #         "test": {
-    #             "engine": "tortoise.backends.asyncpg",
-    #             "credentials": {
-    #                 "host": "localhost",
-    #                 "port": "5432",
-    #                 "user": "postgres",
-    #                 "password": "postgres",
-    #                 "database": "testdb",
-    #             },
-    #         },
-    #         # Using a DB_URL string
-    #         "test": "postgres://postgres:postgres@localhost:5432/testdb",
-    #     },
-    #     "apps": {
-    #         "default": {
-    #             "models": ["models"],
-    #             # If no default_connection specified, defaults to 'default'
-    #             "default_connection": "default",
-    #         }
-    #     },
-    # }

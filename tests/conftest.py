@@ -4,9 +4,11 @@ import pytest
 from tortoise import Tortoise
 from tortoise.transactions import in_transaction
 from httpx import ASGITransport, AsyncClient
+from freezegun import freeze_time
 
 worker_id = os.getenv("PYTEST_XDIST_WORKER", "gw0")
-DB_URL = f"postgres://postgres:postgres@localhost:5432/testdb_{worker_id}"
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_URL = f"postgres://postgres:postgres@{DB_HOST}:5432/testdb_{worker_id}"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -30,7 +32,7 @@ async def client():
     from app import app  # pylint:disable=import-outside-toplevel
 
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
+        transport=ASGITransport(app=app), base_url="https://test"
     ) as ac:
         yield ac
 
@@ -49,3 +51,10 @@ async def db_transaction(request):
         except:
             await conn.rollback()
             raise
+
+
+@pytest.fixture(autouse=True)
+def frozen_time():
+    """Freeze time at a fixed point for tests."""
+    with freeze_time("2025-08-23 12:00:00") as frozen:
+        yield frozen

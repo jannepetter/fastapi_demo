@@ -4,225 +4,20 @@ from models import User
 
 @pytest.fixture
 async def user_fixture():
-    await User.bulk_create([User(name="John"), User(name="Mia")])
+    await User.bulk_create(
+        [
+            User(name="John", email="juu@juu.fi", password="jeps"),
+            User(name="Mia", email="juu2@juu.fi", password="jeps"),
+        ]
+    )
 
-    await User.create(name="jussipussi")
-
-
-@pytest.mark.anyio
-async def test_create_user(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
+    await User.create(name="jussipussi", email="juu3@juu.fi", password="jeps")
 
 
 @pytest.mark.anyio
 async def test_users(client, user_fixture):
 
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-
-
-@pytest.mark.anyio
-async def test_create_user2(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users2(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-
-
-@pytest.mark.anyio
-async def test_create_user3(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users3(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ----
-
-
-@pytest.mark.anyio
-async def test_create_user4(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users4(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-@pytest.mark.anyio
-async def test_create_user5(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users5(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-
-
-@pytest.mark.anyio
-async def test_create_user5(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users5(client, user_fixture):
-
-    response = await client.get("/users")
+    response = await client.get("/api/admin/users")
     data = response.json()
     assert len(data) == 3
     assert data == [
@@ -233,223 +28,39 @@ async def test_users5(client, user_fixture):
 
 
 @pytest.mark.anyio
-async def test_create_user6(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
+async def test_users12(
+    client,
+):
+    user_data = {"email": "test@test.fi", "name": "testuser", "password": "passu"}
+    response = await client.post("/api/admin/users", json=user_data)
     data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
+    assert data == {"error": "Value error, Password must be at least 8 characters long"}
 
 
 @pytest.mark.anyio
-async def test_users6(client, user_fixture):
-
-    response = await client.get("/users")
+async def test_users13(
+    client,
+):
+    user_data = {"email": "test@test.fi", "name": "testuser", "password": "passu" * 30}
+    response = await client.post("/api/admin/users", json=user_data)
     data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
+    assert data == {"error": "Value error, Password must be at max 128 characters long"}
 
 
 @pytest.mark.anyio
-async def test_create_user7(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
+async def test_users14(
+    client,
+):
+    user_data = {
+        "email": "test@test.fi",
+        "name": "testuser",
+        "password": "passu_long_enough",
+    }
+    response = await client.post("/api/admin/users", json=user_data)
     data = response.json()
 
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
+    assert data == {"id": data["id"], "name": "testuser"}
+    user = await User.get(email="test@test.fi")
 
-
-@pytest.mark.anyio
-async def test_users7(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-
-
-@pytest.mark.anyio
-async def test_create_user8(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users8(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ----
-
-
-@pytest.mark.anyio
-async def test_create_user9(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users9(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-@pytest.mark.anyio
-async def test_create_user10(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users10(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
-
-
-# ---
-
-
-@pytest.mark.anyio
-async def test_create_user11(client):
-    name = await User.create(name="jussipuss2i")
-    name.save().close()
-
-    response = await client.get("/create_user")
-    data = response.json()
-    assert data == "Created user alice"
-
-    response = await client.get("/create_user")
-
-    response = await client.get("/users")
-
-    data = response.json()
-
-    assert data == [
-        {"id": data[0]["id"], "name": "jussipuss2i"},
-        {"id": data[1]["id"], "name": "alice"},
-        {"id": data[2]["id"], "name": "alice"},
-    ]
-
-
-@pytest.mark.anyio
-async def test_users11(client, user_fixture):
-
-    response = await client.get("/users")
-    data = response.json()
-    assert len(data) == 3
-    assert data == [
-        {"id": data[0]["id"], "name": "John"},
-        {"id": data[1]["id"], "name": "Mia"},
-        {"id": data[2]["id"], "name": "jussipussi"},
-    ]
+    assert user.password != "passu_long_enough"
+    assert len(user.password) == 97

@@ -5,6 +5,7 @@ load_dotenv()
 
 ENV = os.getenv("ENV")
 DATABASE_URL = os.getenv("DATABASE_URL")
+JWT_SECRET = os.getenv("JWT_SECRET", "testsecret")
 
 TORTOISE_ORM = {
     "connections": {"default": DATABASE_URL},

@@ -38,7 +38,9 @@ async def tenant_fixture():
 @pytest.mark.anyio
 async def test_get_tenants(client, tenant_fixture):
 
-    response = await client.get("/api/base/tenants")
+    basic_user = tenant_fixture["tenant1_user1"]
+    headers = await generate_auth_headers(basic_user)
+    response = await client.get("/api/base/tenants", headers=headers)
     data = response.json()
 
     assert data == [
@@ -54,10 +56,23 @@ async def test_get_tenants(client, tenant_fixture):
 
 
 @pytest.mark.anyio
+async def test_get_tenant_users_with_basic_account(client, tenant_fixture):
+
+    tenant = tenant_fixture["tenant"]
+    basic_user = tenant_fixture["tenant1_user1"]
+    headers = await generate_auth_headers(basic_user)
+    response = await client.get(f"/api/base/tenant_users/{tenant.id}", headers=headers)
+    data = response.json()
+
+    assert response.status_code == 403
+    assert data == {"detail": "Not authorized"}
+
+
+@pytest.mark.anyio
 async def test_get_tenant_users(client, tenant_fixture):
 
     tenant = tenant_fixture["tenant"]
-    manager_user = tenant_fixture["tenant1_user1"]
+    manager_user = tenant_fixture["tenant1_user2"]
     headers = await generate_auth_headers(manager_user)
     response = await client.get(f"/api/base/tenant_users/{tenant.id}", headers=headers)
     data = response.json()

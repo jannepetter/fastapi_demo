@@ -48,6 +48,7 @@ async def test_login(client, tenant_fixture):
     response = await client.post("/api/auth/login", json=data)
     refresh_token = response.cookies.get("refresh_token")
     data = response.json()
+
     access_token = data["access"]
     da = decode_token(access_token)
     assert da == {

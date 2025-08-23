@@ -5,6 +5,7 @@ from utils.authentication import MyAuthBackend
 from config import TORTOISE_ORM
 import logging
 from routers import admin_router, base_router, auth_router
+from utils.middlewares import AdminLayerMiddleware, AuthLayerMiddleware
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +15,11 @@ register_tortoise(
 
 app.include_router(admin_router, prefix="/api/admin")
 app.include_router(base_router, prefix="/api/base")
-app.add_middleware(AuthenticationMiddleware, backend=MyAuthBackend())
 app.include_router(auth_router, prefix="/api/auth")
+
+app.add_middleware(AdminLayerMiddleware)
+app.add_middleware(AuthLayerMiddleware, whitelist=["/api/auth"])
+app.add_middleware(AuthenticationMiddleware, backend=MyAuthBackend())
 
 
 @app.get("/")

@@ -1,3 +1,5 @@
+include .env
+
 compose:
 	docker compose build
 	docker compose up
@@ -18,3 +20,21 @@ docker-clean:
 	@echo "Removing all Docker networks..."
 	docker network prune -f
 	@echo "Docker cleanup done."
+
+plan_base_terraform:
+	terraform -chdir=terraform/base/testing plan
+
+apply_base_terraform:
+	terraform -chdir=terraform/base/testing apply
+
+destroy_base_terraform:
+	terraform -chdir=terraform/base/testing destroy
+
+plan_app_terraform:
+	terraform -chdir=terraform/app/testing plan
+
+apply_app_terraform:
+	terraform -chdir=terraform/app/testing apply
+
+destroy_app_terraform:
+	terraform -chdir=terraform/app/testing destroy

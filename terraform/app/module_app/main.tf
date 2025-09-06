@@ -13,11 +13,6 @@ data "azurerm_subscription" "current" {
   subscription_id = var.SUBSCRIPTION_ID
 }
 
-data "azurerm_key_vault_secret" "db_url" {
-  name         = "database-url"
-  key_vault_id = data.azurerm_key_vault.my_kv.id
-}
-
 data "azurerm_subnet" "cae_subnet" {
   name                 = "cae-subnet"
   virtual_network_name = "rg-${var.app_name}-${var.environment}-${var.resource_group.location}-vnet"
@@ -42,6 +37,12 @@ resource "azurerm_role_assignment" "containerapp" {
   principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
 }
 
+resource "azurerm_role_assignment" "kv_user" {
+  scope                = data.azurerm_key_vault.my_kv.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
+}
+
 resource "azurerm_container_app" "ca" {
   name                         = "ca-${var.app_name}-${var.environment}"
   container_app_environment_id = azurerm_container_app_environment.cont_app_env.id
@@ -56,10 +57,7 @@ resource "azurerm_container_app" "ca" {
     server   = data.azurerm_container_registry.acr.login_server
     identity = azurerm_user_assigned_identity.containerapp.id
   }
-  secret {
-    name  = data.azurerm_key_vault_secret.db_url.name
-    value = data.azurerm_key_vault_secret.db_url.value
-  }
+
   template {
     container {
       name   = "${var.app_name}-${var.environment}-${var.resource_group.location}"
@@ -67,8 +65,8 @@ resource "azurerm_container_app" "ca" {
       cpu    = var.cpu
       memory = var.memory
       env {
-        name        = "DATABASE_URL"
-        secret_name = data.azurerm_key_vault_secret.db_url.name
+        name        = "AZURE_CLIENT_ID"
+        value       = azurerm_user_assigned_identity.containerapp.client_id
       }
     }
     min_replicas = var.min_replicas

@@ -29,3 +29,39 @@ resource "azurerm_subnet" "cae_subnet" {
   virtual_network_name = azurerm_virtual_network.vnet_a.name
   address_prefixes     = ["10.1.0.0/22"]
 }
+
+resource "azurerm_subnet" "default" {
+  name                 = "default"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet_a.name
+  address_prefixes     = ["10.1.4.0/24"]
+}
+
+resource "azurerm_private_dns_zone" "my_dns_zone" {
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_link" {
+  name                  = "dnslink"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.my_dns_zone.name
+  virtual_network_id    = azurerm_virtual_network.vnet_a.id
+}
+
+resource "azurerm_private_endpoint" "example" {
+  name                = "pe-kv"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.default.id
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.my_dns_zone.id]
+  }
+    private_service_connection {
+    name                              = "pe-kv"
+    private_connection_resource_id    = data.azurerm_key_vault.fav.id
+    subresource_names                 = ["vault"]
+    is_manual_connection              = false
+  }
+}

@@ -3,6 +3,7 @@ uvicorn==0.34.3
 asyncpg==0.30.0
 python-dotenv==1.1.0
 tomlkit==0.13.3
-azure-identity==1.24.0
-azure-keyvault-secrets==4.10.0
+azure-core==1.33.0
+azure-identity==1.21.0
+azure-keyvault-secrets==4.9.0
 

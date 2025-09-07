@@ -25,6 +25,10 @@ resource "azurerm_container_app_environment" "cont_app_env" {
   location                 = var.resource_group.location
   resource_group_name      = var.resource_group.name
   infrastructure_subnet_id = data.azurerm_subnet.cae_subnet.id
+
+  lifecycle {
+    ignore_changes = [infrastructure_subnet_id]
+  }
 }
 resource "azurerm_user_assigned_identity" "containerapp" {
   location            = var.resource_group.location

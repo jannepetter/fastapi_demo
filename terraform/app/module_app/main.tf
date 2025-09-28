@@ -9,6 +9,11 @@ data "azurerm_container_registry" "acr" {
   name                = "fatestdemo"
   resource_group_name = "rg-common-${var.app_name}"
 }
+
+data "azurerm_storage_account" "storage" {
+  name                = "testistorageacco"
+  resource_group_name = data.azurerm_resource_group.common_rg.name
+}
 data "azurerm_subscription" "current" {
   subscription_id = var.SUBSCRIPTION_ID
 }
@@ -47,6 +52,12 @@ resource "azurerm_role_assignment" "kv_user" {
   principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
 }
 
+resource "azurerm_role_assignment" "storage_contributor" {
+  scope                = data.azurerm_storage_account.storage.id
+  role_definition_name = "Storage Table Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
+}
+
 resource "azurerm_container_app" "ca" {
   name                         = "ca-${var.app_name}-${var.environment}"
   container_app_environment_id = azurerm_container_app_environment.cont_app_env.id
@@ -71,6 +82,15 @@ resource "azurerm_container_app" "ca" {
       env {
         name        = "AZURE_CLIENT_ID"
         value       = azurerm_user_assigned_identity.containerapp.client_id
+      }
+      env {
+        name        = "ENV"
+        value       = "PROD"
+      }
+      
+      env {
+        name        = "STORAGE_ACCOUNT_NAME"
+        value       = data.azurerm_storage_account.storage.name
       }
     }
     min_replicas = var.min_replicas

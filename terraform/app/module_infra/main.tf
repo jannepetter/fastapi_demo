@@ -7,6 +7,11 @@ data "azurerm_key_vault" "fav" {
   resource_group_name = data.azurerm_resource_group.common_rg.name
 }
 
+data "azurerm_storage_account" "storage" {
+  name                = "testistorageacco"
+  resource_group_name = data.azurerm_resource_group.common_rg.name
+}
+
 data "azurerm_subscription" "current" {
   subscription_id = var.SUBSCRIPTION_ID
 }
@@ -41,11 +46,22 @@ resource "azurerm_private_dns_zone" "my_dns_zone" {
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = azurerm_resource_group.rg.name
 }
+resource "azurerm_private_dns_zone" "storage_table" {
+  name                = "privatelink.table.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
+}
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_link" {
-  name                  = "dnslink"
+  name                  = "dnslink-vault"
   resource_group_name   = azurerm_resource_group.rg.name
   private_dns_zone_name = azurerm_private_dns_zone.my_dns_zone.name
+  virtual_network_id    = azurerm_virtual_network.vnet_a.id
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_link_storage" {
+  name                  = "dnslink-storage"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.storage_table.name
   virtual_network_id    = azurerm_virtual_network.vnet_a.id
 }
 
@@ -62,6 +78,23 @@ resource "azurerm_private_endpoint" "example" {
     name                              = "pe-kv"
     private_connection_resource_id    = data.azurerm_key_vault.fav.id
     subresource_names                 = ["vault"]
+    is_manual_connection              = false
+  }
+}
+
+resource "azurerm_private_endpoint" "pe_storage" {
+  name                = "pe-storage"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.default.id
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.storage_table.id]
+  }
+    private_service_connection {
+    name                              = "pe-storage"
+    private_connection_resource_id    = data.azurerm_storage_account.storage.id
+    subresource_names                 = ["table"]
     is_manual_connection              = false
   }
 }

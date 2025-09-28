@@ -4,13 +4,28 @@ from azure.identity import (
     DefaultAzureCredential,
 )
 from azure.keyvault.secrets import SecretClient
+from storage import service, get_users, add_user
 
 app = FastAPI()
 
 
 @app.get("/")
 async def home():
-    return "works"
+    key = add_user({"name": "Hänmies", "age": 30, "juu": "joo!"})
+    return key
+
+
+@app.get("/joo")
+async def joo():
+
+    users = []
+    users_table = service.get_table_client("Users")
+
+    entities = users_table.query_entities(f"PartitionKey eq 'users'")
+    for entity in entities:
+        user_data = dict(entity)
+        users.append(user_data)
+    return users
 
 
 @app.get("/secret")

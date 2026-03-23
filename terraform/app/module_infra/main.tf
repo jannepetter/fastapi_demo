@@ -28,6 +28,17 @@ resource "azurerm_subnet" "cae_subnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet_a.name
   address_prefixes     = ["10.1.0.0/22"]
+    delegation {
+    name = "containerappsdelegation"
+
+    service_delegation {
+      name = "Microsoft.App/environments"
+
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/action"
+      ]
+    }
+  }
 }
 
 resource "azurerm_subnet" "default" {

@@ -1,4 +1,6 @@
 import logging
+import requests
+import os
 from fastapi import FastAPI
 from azure.identity import (
     DefaultAzureCredential,

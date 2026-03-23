@@ -72,6 +72,10 @@ resource "azurerm_container_app" "ca" {
         name        = "AZURE_CLIENT_ID"
         value       = azurerm_user_assigned_identity.containerapp.client_id
       }
+      env {
+        name        = "TENANT_ID"
+        value       = data.azurerm_subscription.current.tenant_id
+      }
     }
     min_replicas = var.min_replicas
     max_replicas = var.max_replicas

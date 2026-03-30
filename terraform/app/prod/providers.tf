@@ -1,8 +1,15 @@
 terraform {
+  # backend "azurerm" {
+  #   resource_group_name  = "rg-mytestprj-base-swedencentral"
+  #   storage_account_name = "sttfbemytestprj"
+  #   container_name       = "terraform-state"
+  #   key                  = "prod-terraform.tfstate"
+  #   use_azuread_auth     = true
+  # }
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.27.0"
+      version = "=4.62.1"
     }
     azapi = {
       source  = "azure/azapi"
@@ -14,14 +21,13 @@ terraform {
     }
   }
 }
-
 provider "azurerm" {
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
   }
-  subscription_id = var.SUBSCRIPTION_ID
+  subscription_id = var.PROD_SUBSCRIPTION_ID
 }
 
 provider "azapi" {

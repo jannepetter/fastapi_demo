@@ -2,4 +2,4 @@
 *.terraform*
 *.tfstate*
 *__pycache__
-myshell.sh
+my_shell.sh

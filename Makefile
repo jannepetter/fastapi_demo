@@ -21,20 +21,21 @@ docker-clean:
 	docker network prune -f
 	@echo "Docker cleanup done."
 
-plan_base_terraform:
-	terraform -chdir=terraform/base/testing plan
+fmt:
+	terraform -chdir=terraform fmt -recursive
 
-apply_base_terraform:
-	terraform -chdir=terraform/base/testing apply
+MOD ?= prod 
 
-destroy_base_terraform:
-	terraform -chdir=terraform/base/testing destroy
+
+init_app_terraform:
+	terraform -chdir=terraform/app/$(MOD) init
 
 plan_app_terraform:
-	terraform -chdir=terraform/app/testing plan
+	terraform -chdir=terraform/app/$(MOD) plan
 
 apply_app_terraform:
-	terraform -chdir=terraform/app/testing apply
+	terraform -chdir=terraform/app/$(MOD) apply
 
 destroy_app_terraform:
-	terraform -chdir=terraform/app/testing destroy
+	terraform -chdir=terraform/app/$(MOD) destroy
+

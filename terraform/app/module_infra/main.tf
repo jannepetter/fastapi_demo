@@ -1,67 +1,86 @@
-data "azurerm_resource_group" "common_rg" {
-  name = "rg-common-${var.app_name}"
-}
-
-data "azurerm_key_vault" "fav" {
-  name                = "kv-fastapidemo"
-  resource_group_name = data.azurerm_resource_group.common_rg.name
+locals {
+  tags = {
+    environment = var.environment
+    project     = var.app_name
+  }
 }
 
 data "azurerm_subscription" "current" {
-  subscription_id = var.SUBSCRIPTION_ID
+  subscription_id = var.subscription_id
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-${var.app_name}-${var.environment}-${var.location}"
-  location = var.location
+data "azurerm_resource_group" "env_rg" {
+  name = "rg-${var.app_name}-${var.environment}-${var.location}"
+}
+data "azurerm_resource_group" "base_rg" {
+  name = "rg-${var.app_name}-base-${var.location}"
 }
 
-resource "azurerm_virtual_network" "vnet_a" {
-  name                = "rg-${var.app_name}-${var.environment}-${var.location}-vnet"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  address_space       = ["10.1.0.0/16"]
+data "azurerm_virtual_network" "vnet" {
+  name                = "vnet-${var.app_name}-${var.environment}-${var.location}"
+  resource_group_name = data.azurerm_resource_group.env_rg.name
+}
+data "azurerm_subnet" "pe_subnet" {
+  name                 = "snet-pe-${var.environment}"
+  resource_group_name  = data.azurerm_resource_group.env_rg.name
+  virtual_network_name = data.azurerm_virtual_network.vnet.name
+}
+
+
+data "azurerm_key_vault" "kv" {
+  name                = "kv-${var.app_name}-${var.environment}"
+  resource_group_name = data.azurerm_resource_group.base_rg.name
 }
 
 resource "azurerm_subnet" "cae_subnet" {
-  name                 = "cae-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet_a.name
-  address_prefixes     = ["10.1.0.0/22"]
+  name                 = "snet-cae-${var.app_name}-${var.environment}"
+  resource_group_name  = data.azurerm_resource_group.env_rg.name
+  virtual_network_name = data.azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.cae_subnet_address]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name = "Microsoft.App/environments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/action",
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
 }
 
-resource "azurerm_subnet" "default" {
-  name                 = "default"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet_a.name
-  address_prefixes     = ["10.1.4.0/24"]
-}
-
-resource "azurerm_private_dns_zone" "my_dns_zone" {
+data "azurerm_private_dns_zone" "kv_dns" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = data.azurerm_resource_group.base_rg.name
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "dns_link" {
-  name                  = "dnslink"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.my_dns_zone.name
-  virtual_network_id    = azurerm_virtual_network.vnet_a.id
+resource "azurerm_private_dns_zone_virtual_network_link" "kv" {
+  name                  = "pdnslink-kv-${var.app_name}-${var.environment}"
+  resource_group_name   = data.azurerm_resource_group.base_rg.name
+  private_dns_zone_name = data.azurerm_private_dns_zone.kv_dns.name
+  virtual_network_id    = data.azurerm_virtual_network.vnet.id
+  registration_enabled  = false
+  tags                  = local.tags
 }
 
-resource "azurerm_private_endpoint" "example" {
-  name                = "pe-kv"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = azurerm_subnet.default.id
+resource "azurerm_private_endpoint" "kv_pe" {
+  name                = "pe-kv-${var.app_name}-${var.environment}-${var.location}"
+  location            = var.location
+  resource_group_name = data.azurerm_resource_group.env_rg.name
+  subnet_id           = data.azurerm_subnet.pe_subnet.id
+
+  private_service_connection {
+    name                           = "psc-kv-${var.app_name}-${var.environment}"
+    private_connection_resource_id = data.azurerm_key_vault.kv.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+
   private_dns_zone_group {
-    name                 = "default"
-    private_dns_zone_ids = [azurerm_private_dns_zone.my_dns_zone.id]
+    name                 = "pdnszg-kv-${var.app_name}-${var.environment}"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.kv_dns.id]
   }
-    private_service_connection {
-    name                              = "pe-kv"
-    private_connection_resource_id    = data.azurerm_key_vault.fav.id
-    subresource_names                 = ["vault"]
-    is_manual_connection              = false
-  }
+  tags = local.tags
 }

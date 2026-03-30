@@ -1,16 +1,7 @@
-variable "SUBSCRIPTION_ID" {
+variable "subscription_id" {
   type      = string
   sensitive = true
 }
-
-variable "resource_group" {
-  type = object({
-    location = string
-    name     = string
-  })
-  sensitive = true
-}
-
 variable "app_name" {
   type      = string
   sensitive = false
@@ -38,4 +29,19 @@ variable "min_replicas" {
 variable "max_replicas" {
   type      = number
   sensitive = false
+}
+
+variable "location" {
+  type      = string
+  sensitive = true
+}
+
+variable "PORT" {
+  type      = number
+  sensitive = true
+}
+
+variable "app_env" {
+  type      = string
+  sensitive = true
 }

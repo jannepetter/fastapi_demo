@@ -18,18 +18,14 @@ async def secret():
 
     try:
         credential = DefaultAzureCredential()
-        key_vault_name = "kv-fastapidemo"
+        key_vault_name = "kv-mytestprj-prod"
         kv_uri = f"https://{key_vault_name}.vault.azure.net"
         client = SecretClient(vault_url=kv_uri, credential=credential)
 
-        secret_name = "testjuttu"
+        secret_name = "test-secret"
         retrieved_secret = client.get_secret(secret_name)
 
         return {"secret_name": secret_name, "secret_value": retrieved_secret.value}
     except Exception as e:
         logging.error("Secret fetch failed with: ", e)
         return "failed"
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -1,11 +1,44 @@
-import logging
-from fastapi import FastAPI
-from azure.identity import (
-    DefaultAzureCredential,
-)
-from azure.keyvault.secrets import SecretClient
+from fastapi import FastAPI, HTTPException
+from azure.identity import DefaultAzureCredential
+from azure.servicebus import ServiceBusClient
 
 app = FastAPI()
+
+SERVICE_BUS_NAMESPACE = "my-service-bus-hommat.servicebus.windows.net"
+TOPIC_NAME = "test_topic"
+SUBSCRIPTION_NAME = "something"
+
+
+def fetch_message() -> str | None:
+    credential = DefaultAzureCredential()
+
+    with ServiceBusClient(
+        fully_qualified_namespace=SERVICE_BUS_NAMESPACE,
+        credential=credential,
+    ) as client:
+
+        with client.get_subscription_receiver(
+            topic_name=TOPIC_NAME,
+            subscription_name=SUBSCRIPTION_NAME,
+            max_wait_time=10,
+        ) as receiver:
+
+            messages = receiver.receive_messages(
+                max_message_count=1,
+                max_wait_time=10,
+            )
+
+            if not messages:
+                return None
+
+            message = messages[0]
+
+            body = b"".join(message.body).decode("utf-8")
+
+            receiver.complete_message(message)
+
+            return body
+
 
 
 @app.get("/")
@@ -13,19 +46,14 @@ async def home():
     return "works"
 
 
-@app.get("/secret")
-async def secret():
+@app.get("/message")
+def get_message():
+    message = fetch_message()
 
-    try:
-        credential = DefaultAzureCredential()
-        key_vault_name = "kv-mytestprj-prod"
-        kv_uri = f"https://{key_vault_name}.vault.azure.net"
-        client = SecretClient(vault_url=kv_uri, credential=credential)
+    if message is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No messages available",
+        )
 
-        secret_name = "test-secret"
-        retrieved_secret = client.get_secret(secret_name)
-
-        return {"secret_name": secret_name, "secret_value": retrieved_secret.value}
-    except Exception as e:
-        logging.error("Secret fetch failed with: ", e)
-        return "failed"
+    return {"message": message}

@@ -1,9 +1,7 @@
-import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from azure.identity import (
     DefaultAzureCredential,
 )
-from azure.keyvault.secrets import SecretClient
 
 app = FastAPI()
 
@@ -13,19 +11,32 @@ async def home():
     return "works"
 
 
-@app.get("/secret")
-async def secret():
+@app.get("/api/aad-tokens")
+async def get_aad_tokens(request: Request):
+    return {
+        "x-ms-token-aad-access-token": request.headers.get("x-ms-token-aad-access-token"),
+        "x-ms-token-aad-id-token": request.headers.get("x-ms-token-aad-id-token"),
+        "x-ms-client-principal": request.headers.get("x-ms-client-principal"),
+        "x-ms-client-principal-name": request.headers.get("x-ms-client-principal-name"),
+    }
 
-    try:
-        credential = DefaultAzureCredential()
-        key_vault_name = "kv-mytestprj-prod"
-        kv_uri = f"https://{key_vault_name}.vault.azure.net"
-        client = SecretClient(vault_url=kv_uri, credential=credential)
+# @app.post("/api/redis/{key}")
+# async def store_data(key: str, request: Request):
+#     data = await request.json()
 
-        secret_name = "test-secret"
-        retrieved_secret = client.get_secret(secret_name)
+#     await redis_client.set(key, json.dumps(data))
 
-        return {"secret_name": secret_name, "secret_value": retrieved_secret.value}
-    except Exception as e:
-        logging.error("Secret fetch failed with: ", e)
-        return "failed"
+#     return {"key": key, "stored": True}
+
+
+# @app.get("/api/redis/{key}")
+# async def get_data(key: str):
+#     data = await redis_client.get(key)
+
+#     if data is None:
+#         raise HTTPException(404, "Key not found")
+
+#     return {
+#         "key": key,
+#         "data": json.loads(data)
+#     }

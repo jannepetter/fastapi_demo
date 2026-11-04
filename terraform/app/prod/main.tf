@@ -1,7 +1,7 @@
 variable "app_name" {
   description = "The name of the application"
   type        = string
-  default     = "mytestprj"
+  default     = "mytestprj123"
 }
 variable "app_env" {
   description = "The app environment"

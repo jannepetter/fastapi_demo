@@ -1,16 +1,13 @@
-data "azurerm_container_registry" "acr" {
-  name                = "acr${var.app_name}"
-  resource_group_name = "rg-${var.app_name}-base-${var.location}"
-}
-data "azurerm_subscription" "current" {
-  subscription_id = var.subscription_id
-}
 
 data "azurerm_resource_group" "env_rg" {
   name = "rg-${var.app_name}-${var.environment}-${var.location}"
 }
-data "azurerm_resource_group" "base_rg" {
-  name = "rg-${var.app_name}-base-${var.location}"
+data "azurerm_container_registry" "acr" {
+  name                = "acr${var.app_name}"
+  resource_group_name = data.azurerm_resource_group.env_rg.name
+}
+data "azurerm_subscription" "current" {
+  subscription_id = var.subscription_id
 }
 
 
@@ -43,10 +40,7 @@ resource "azurerm_container_app_environment" "cont_app_env" {
   }
 }
 
-data "azurerm_key_vault" "kv" {
-  name                = "kv-${var.app_name}-${var.environment}"
-  resource_group_name = data.azurerm_resource_group.base_rg.name
-}
+
 
 resource "azurerm_user_assigned_identity" "containerapp" {
   location            = data.azurerm_resource_group.env_rg.location
@@ -60,14 +54,8 @@ resource "azurerm_role_assignment" "containerapp" {
   depends_on           = [azurerm_user_assigned_identity.containerapp]
 }
 
-resource "azurerm_role_assignment" "primary_keyvault_access" {
-  scope                = data.azurerm_key_vault.kv.id
-  role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
-}
-
 resource "azurerm_container_app" "ca" {
-  name                         = "ca-${var.app_name}-${var.environment}-${var.location}"
+  name                         = "ca-${var.app_name}-${var.environment}"
   container_app_environment_id = azurerm_container_app_environment.cont_app_env.id
   resource_group_name          = data.azurerm_resource_group.env_rg.name
   revision_mode                = "Single"
@@ -89,10 +77,6 @@ resource "azurerm_container_app" "ca" {
       cpu    = var.cpu
       memory = var.memory
       env {
-        name  = "AZURE_KEY_VAULT_NAME"
-        value = data.azurerm_key_vault.kv.name
-      }
-      env {
         name  = "ENV"
         value = var.app_env
       }
@@ -107,7 +91,6 @@ resource "azurerm_container_app" "ca" {
   depends_on = [
     azurerm_user_assigned_identity.containerapp,
     azurerm_role_assignment.containerapp,
-    azurerm_role_assignment.primary_keyvault_access
   ]
   ingress {
     external_enabled = true

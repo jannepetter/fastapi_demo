@@ -1,9 +1,24 @@
-from fastapi import FastAPI, Request
+import json
+import os
+import random
+from fastapi import FastAPI, HTTPException, Request
+import redis.asyncio as redis
 from azure.identity import (
     DefaultAzureCredential,
 )
 
 app = FastAPI()
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
+
+redis_client = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    password=REDIS_PASSWORD,
+    decode_responses=True,
+)
 
 
 @app.get("/")
@@ -11,32 +26,53 @@ async def home():
     return "works"
 
 
-@app.get("/api/aad-tokens")
-async def get_aad_tokens(request: Request):
+@app.get("/api/headers")
+async def get_headers(request: Request):
     return {
-        "x-ms-token-aad-access-token": request.headers.get("x-ms-token-aad-access-token"),
-        "x-ms-token-aad-id-token": request.headers.get("x-ms-token-aad-id-token"),
-        "x-ms-client-principal": request.headers.get("x-ms-client-principal"),
-        "x-ms-client-principal-name": request.headers.get("x-ms-client-principal-name"),
+        "headers": dict(request.headers),
     }
 
-# @app.post("/api/redis/{key}")
-# async def store_data(key: str, request: Request):
-#     data = await request.json()
 
-#     await redis_client.set(key, json.dumps(data))
+@app.get("/api/redis/write")
+async def write_hello():
+    try:
+        rand_num = random.randint(1, 1000000)
+        data = {
+            "message": "hello",
+            "random_number": rand_num,
+        }
+        await redis_client.set("hello", json.dumps(data))
+        return {"status": "success", "key": "hello", "data": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")
 
-#     return {"key": key, "stored": True}
+
+@app.get("/api/redis/read")
+async def read_hello():
+    try:
+        data = await redis_client.get("hello")
+        if data is None:
+            raise HTTPException(status_code=404, detail="Key 'hello' not found in Redis")
+        return {"key": "hello", "data": json.loads(data)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")
 
 
-# @app.get("/api/redis/{key}")
-# async def get_data(key: str):
-#     data = await redis_client.get(key)
-
-#     if data is None:
-#         raise HTTPException(404, "Key not found")
-
-#     return {
-#         "key": key,
-#         "data": json.loads(data)
-#     }
+@app.get("/api/redis/read-wo-password")
+async def read_hello2():
+    try:
+        redis_client_no_password = redis.Redis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            decode_responses=True,
+        )
+        data = await redis_client_no_password.get("hello")
+        if data is None:
+            raise HTTPException(status_code=404, detail="Key 'hello' not found in Redis")
+        return {"key": "hello", "data": json.loads(data)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")

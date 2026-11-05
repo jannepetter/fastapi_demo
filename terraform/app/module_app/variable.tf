@@ -45,3 +45,29 @@ variable "app_env" {
   type      = string
   sensitive = true
 }
+
+variable "redis_image" {
+  type        = string
+  description = "Docker image for Redis sidecar"
+  default     = "redis:alpine"
+}
+
+variable "redis_cpu" {
+  type        = number
+  description = "CPU allocated to the Redis sidecar container"
+  default     = 0.25
+}
+
+variable "redis_memory" {
+  type        = string
+  description = "Memory allocated to the Redis sidecar container"
+  default     = "0.5Gi"
+}
+variable "cloudflare_tunnel_token" {
+  type      = string
+  sensitive = true
+}
+variable "redis_password" {
+  type      = string
+  sensitive = true
+}

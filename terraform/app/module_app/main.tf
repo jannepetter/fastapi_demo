@@ -3,7 +3,7 @@ data "azurerm_resource_group" "env_rg" {
   name = "rg-${var.app_name}-${var.environment}-${var.location}"
 }
 data "azurerm_container_registry" "acr" {
-  name                = "acr${var.app_name}"
+  name                = "acr${var.app_name}123"
   resource_group_name = data.azurerm_resource_group.env_rg.name
 }
 data "azurerm_subscription" "current" {
@@ -25,10 +25,12 @@ data "azurerm_subnet" "cae_subnet" {
 
 
 resource "azurerm_container_app_environment" "cont_app_env" {
-  name                       = "cae-${var.app_name}-${var.environment}-${var.location}"
-  location                   = var.location
-  resource_group_name        = data.azurerm_resource_group.env_rg.name
-  infrastructure_subnet_id   = data.azurerm_subnet.cae_subnet.id
+  name                           = "cae-${var.app_name}-${var.environment}-${var.location}"
+  location                       = var.location
+  resource_group_name            = data.azurerm_resource_group.env_rg.name
+  infrastructure_subnet_id       = data.azurerm_subnet.cae_subnet.id
+  internal_load_balancer_enabled = true
+  public_network_access          = "Disabled"
   workload_profile {
     name                  = "Consumption"
     workload_profile_type = "Consumption"
@@ -70,6 +72,16 @@ resource "azurerm_container_app" "ca" {
     identity = azurerm_user_assigned_identity.containerapp.id
   }
 
+  secret {
+    name  = "redis-password"
+    value = var.redis_password
+  }
+
+  secret {
+    name  = "cloudflare-tunnel-token"
+    value = var.cloudflare_tunnel_token
+  }
+
   template {
     container {
       name   = "${var.app_name}-${var.environment}-${var.location}"
@@ -84,6 +96,55 @@ resource "azurerm_container_app" "ca" {
         name  = "AZURE_CLIENT_ID"
         value = azurerm_user_assigned_identity.containerapp.client_id
       }
+      env {
+        name  = "REDIS_HOST"
+        value = "localhost"
+      }
+      env {
+        name  = "REDIS_PORT"
+        value = "6379"
+      }
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+    }
+
+    container {
+      name   = "redis"
+      image  = var.redis_image
+      cpu    = var.redis_cpu
+      memory = var.redis_memory
+
+      command = ["/bin/sh", "-c"]
+      args = [
+        "redis-server --requirepass $REDIS_PASSWORD"
+      ]
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+    }
+    container {
+      name   = "cloudflared"
+      image  = "cloudflare/cloudflared:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name        = "TUNNEL_TOKEN"
+        secret_name = "cloudflare-tunnel-token"
+      }
+
+      command = ["cloudflared"]
+      args = [
+        "tunnel",
+        "--no-autoupdate",
+        "run",
+        "--token",
+        "$(TUNNEL_TOKEN)"
+      ]
     }
     min_replicas = var.min_replicas
     max_replicas = var.max_replicas
@@ -93,7 +154,7 @@ resource "azurerm_container_app" "ca" {
     azurerm_role_assignment.containerapp,
   ]
   ingress {
-    external_enabled = true
+    external_enabled = false
     target_port      = var.PORT
     traffic_weight {
       percentage      = 100

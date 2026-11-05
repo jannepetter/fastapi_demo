@@ -1,10 +1,4 @@
 # Simple Fastapi  
 
-- 2 separate vnets for stag and prod envs  
-- 2 private endpoints to separate kvs  
-- no db  
-- base rg  
-- prod rg  
-- stag rg  
-
-Basic stuff acr, kv, vnet, subnet and rg launched with az script, the rest with terraform  
+- Cloudflare Networking -> Tunnel -> Create -> get the token -> add to tf var -> deploy  
+- At the cloudflare tunnel -> Routes -> add route -> Published application -> add your domain. The service url is the resource in your container app env  

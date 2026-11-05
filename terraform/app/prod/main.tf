@@ -1,7 +1,7 @@
 variable "app_name" {
   description = "The name of the application"
   type        = string
-  default     = "mytestprj123"
+  default     = "mytestprj"
 }
 variable "app_env" {
   description = "The app environment"
@@ -48,19 +48,21 @@ module "infra" {
 }
 
 module "app" {
-  for_each        = { for env in var.environments : env.environment => env }
-  source          = "../module_app"
-  app_env         = var.app_env
-  PORT            = var.port
-  subscription_id = var.PROD_SUBSCRIPTION_ID
-  app_name        = var.app_name
-  environment     = each.value.environment
-  cpu             = each.value.cpu
-  memory          = each.value.memory
-  min_replicas    = each.value.min_replicas
-  max_replicas    = each.value.max_replicas
-  location        = each.value.location
-  depends_on      = [module.infra]
+  for_each                = { for env in var.environments : env.environment => env }
+  source                  = "../module_app"
+  app_env                 = var.app_env
+  PORT                    = var.port
+  subscription_id         = var.PROD_SUBSCRIPTION_ID
+  app_name                = var.app_name
+  environment             = each.value.environment
+  cpu                     = each.value.cpu
+  memory                  = each.value.memory
+  min_replicas            = each.value.min_replicas
+  max_replicas            = each.value.max_replicas
+  location                = each.value.location
+  cloudflare_tunnel_token = var.PROD_CLOUDFLARE_TUNNEL_TOKEN
+  redis_password          = "very-secure-password"
+  depends_on              = [module.infra]
 }
 
 output "app_urls" {
